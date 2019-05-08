@@ -55,7 +55,7 @@ LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-montavista-cgl.git
 LAYER@https://github.com/riscv/meta-riscv;branch=master \
 MACHINE@freedom-u540 \
 DISTRO@mvista-cgx \
-CONFIG@PREFERRED_PROVIDER_virtual/kernel=linux-riscv \
+CONFIG@PREFERRED_PROVIDER_virtual/kernel=linux-mainline \
 "
 BUILD_TOOLS_LOCATION="$(lynx -dump http://downloads.yoctoproject.org/releases/yocto/ | grep yocto-2.6 | gawk -F " " '{print $2}' | tail -n 1)buildtools"
 TOPDIR=$(dirname $THIS_SCRIPT)
