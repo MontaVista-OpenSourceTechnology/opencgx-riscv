@@ -52,7 +52,7 @@ LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-cgl.git;branch=thu
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-cloud-services.git;branch=thud \
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-cloud-services.git;branch=thud;layer=meta-openstack \
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-montavista-cgl.git;branch=thud \
-LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-riscv=thud \
+LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-riscv;branch=thud \
 MACHINE@freedom-u540 \
 DISTRO@mvista-cgx \
 CONFIG@PREFERRED_PROVIDER_virtual/kernel=linux-mainline \
