@@ -44,4 +44,5 @@
 	branch = thud
 [submodule "layers/meta-riscv"]
 	path = layers/meta-riscv
-	url = https://github.com/riscv/meta-riscv
+	url = https://github.com/MontaVista-OpenSourceTechnology/meta-riscv 
+	branch = thud
