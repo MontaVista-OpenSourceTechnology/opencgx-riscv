@@ -5,8 +5,8 @@ Montavista Software, LLC. release of freedom-u540.
 How to use:
 ==========
 ```
-git clone --recursive https://github.com/MontaVista-OpenSourceTechnology/opencgx-riscv-2.6
-cd opencgx-riscv-2.6
+git clone --recursive https://github.com/MontaVista-OpenSourceTechnology/opencgx-riscv
+cd opencgx-riscv
 source setup.sh
 ```
 Optionally, you can pass setup.sh a directory name to use instead of the
@@ -39,7 +39,7 @@ poky/oe-init-build-env script.
 directory layout:
 ================
 ```
-opencgx-riscv-2.6/
+opencgx-riscv/
        project - bitbake project for the freedom-u540 project build
        buildtools - build tools to provide minimal build requirement for poky builds
        layers - layers for building freedom-u540 project
