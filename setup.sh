@@ -40,7 +40,6 @@ LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-clang.git;branch=m
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-virtualization.git;branch=master \
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-qa.git;branch=master;layer=meta-qa-framework \
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-qa.git;branch=master;layer=meta-qa-testsuites \
-LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-montavista-cgx.git;branch=master;layer=qemu-bsp \
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-montavista-cgx.git;branch=master \
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-openembedded.git;branch=master;layer=meta-perl \
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-openembedded.git;branch=master;layer=meta-gnome \
@@ -50,14 +49,12 @@ LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-selinux.git;branch
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-security.git;branch=master \
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-cgl.git;branch=master;layer=meta-cgl-common \
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-cloud-services.git;branch=master \
-LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-cloud-services.git;branch=master;layer=meta-openstack \
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-montavista-cgl.git;branch=master \
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-riscv;branch=master \
-MACHINE@freedom-u540 \
+MACHINE@qemuriscv64 \
 DISTRO@mvista-cgx \
 CONFIG@PREFERRED_PROVIDER_virtual/kernel=linux-mainline \
 "
-BUILD_TOOLS_LOCATION="$(lynx -dump http://downloads.yoctoproject.org/releases/yocto/ | grep yocto-3.1 | gawk -F " " '{print $2}' | tail -n 1)buildtools"
 TOPDIR=$(dirname $THIS_SCRIPT)
 buildtar=""
 URL=""
@@ -72,29 +69,9 @@ for config in $REPO_CONFIG; do
     fi
 done
 
-export BUILD_TOOLS_LOCATION
-export buildtar
-$TOPDIR/bin/fetch-buildtools || $EXIT 1
-
-if which python 2>/dev/null >/dev/null; then 
-    PYTHON=python
-elif which python2 2>/dev/null >/dev/null; then 
-    PYTHON=python2
-elif which python3 2>/dev/null >/dev/null; then 
-    PYTHON=python3
-else
-    echo "Could not find system python, please install"
-    $EXIT 1
-fi
-source $TOPDIR/buildtools/environment-setup-*
-if [ "$?" != "0" ] ; then
-   $EXIT 1
-fi
-
 chmod 755 $TOPDIR/bin/*
 if [[ ("x$URLBASE" != "x") && ( "$HOST" = "staging.support.mvista.com" || "$HOST" = "support.mvista.com") ]] ; then
    git config --global credential.$URLBASE.helper $TOPDIR/bin/git-credential-mvl
-   git config --global http.$URLBASE.cookiefile $($TOPDIR/bin/mvl-fetch -c $URLBASE)
 fi
 
 if [ ! -e $TOPDIR/.drop ] ; then
@@ -102,26 +79,7 @@ if [ ! -e $TOPDIR/.drop ] ; then
       pushd $TOPDIR 2>/dev/null 1>/dev/null
          git config pull.rebase True
          git submodule init || $EXIT 1
-	 if [ -z "$GIT_RETRIES" ] ; then
-            GIT_RETRIES=5
-	 fi
-	 if [ -z "$GIT_DELAY" ] ; then
-            GIT_DELAY=10
-	 fi
-         GIT_COUNT=1
-         while [ $GIT_COUNT -lt $GIT_RETRIES ] ; do
-            git submodule update --remote
-            if [ $? -eq 0 ] ; then
-                 GIT_RETRIES=0
-                 break
-            fi
-            GIT_COUNT=$(($GIT_COUNT + 1))
-	    echo "git submodule update failed, sleeping for $GIT_DELAY seconds and retrying"
-            sleep $GIT_DELAY
-         done
-         if [ $GIT_RETRIES != 0 ] ; then
-            $EXIT 1
-         fi
+         git submodule update --remote || $EXIT 1
       popd  2>/dev/null 1>/dev/null
    else
       pushd $TOPDIR 2>/dev/null >/dev/null
@@ -129,16 +87,26 @@ if [ ! -e $TOPDIR/.drop ] ; then
       popd 2>/dev/null >/dev/null
    fi
 fi
+export BUILD_TOOLS_LOCATION
+export buildtar
+$TOPDIR/bin/fetch-buildtools || $EXIT 1
 
 if [ -z "$TEMPLATECONF" -o ! -d "$TEMPLATECONF" ] ; then
     export TEMPLATECONF=$TOPDIR/layers/meta-montavista-cgx/conf
+fi
+
+source $TOPDIR/buildtools/environment-setup-*
+if [ "$?" != "0" ] ; then
+   $EXIT 1
 fi
 
 source $TOPDIR/layers/poky/oe-init-build-env $buildDir 
 if [ "$?" != "0" ] ; then
    $EXIT 1
 fi
+
 sed -i -e "s,honister,kirkstone," -e "s,dunfell,kirkstone," $TOPDIR/layers/*/conf/layer.conf
+
 export BB_NO_NETWORK="1"
 export LAYERS_RELATIVE="1"
 if [ -z "$LOCAL_SOURCES" ] ; then
@@ -167,7 +135,10 @@ for config in $REPO_CONFIG; do
           mkdir -p $buildDir/.layers
           if [ ! -e $buildDir/.layers/$layerDir-$sublayer ] ; then
              echo "adding $layerDir/$sublayer"
-             bitbake-layers -F add-layer $TOPDIR/layers/$layerDir/$sublayer >/dev/null || $EXIT 1
+             if ! bitbake-layers -F add-layer $TOPDIR/layers/$layerDir/$sublayer >/dev/null ; then
+                  bitbake-layers add-layer $TOPDIR/layers/$layerDir/$sublayer
+                  $EXIT 1
+             fi
              touch $buildDir/.layers/$layerDir-$sublayer
           fi
        fi
@@ -221,11 +192,6 @@ for config in $REPO_CONFIG; do
           echo "BB_HASHBASE_WHITELIST_append += \"$(echo $META)_TREE\"" >> conf/local-content.conf
           echo >> conf/local-content.conf
     fi
-    if [ "$VAR" = "CONFIG" ] ; then
-       option=$(echo $VAL | cut -d = -f 1)
-       setting=$(echo $VAL | cut -d = -f 2)
-       echo "$option ?= '$setting'" >> conf/local-content.conf
-    fi   
 done
 if [ -n "$SOURCE_MIRROR_URL" ] ; then
    if [ -z "$(echo $SOURCE_MIRROR_URL | grep "://")" ] ; then
@@ -234,7 +200,6 @@ if [ -n "$SOURCE_MIRROR_URL" ] ; then
    fi
    echo "SOURCE_MIRROR_URL = '$SOURCE_MIRROR_URL'" >> conf/local-content.conf
    echo >> conf/local-content.conf
-   SOURCE_MIRROR_URL=""
 fi
 if [ -n "$PROTECTED_SOURCE_URL" ] ; then 
    if [ -z "$(echo $PROTECTED_SOURCE_URL | grep "://")" ] ; then
@@ -243,7 +208,6 @@ if [ -n "$PROTECTED_SOURCE_URL" ] ; then
    fi
    echo "PROTECTED_SOURCE_URL = '$PROTECTED_SOURCE_URL'" >> conf/local-content.conf
    echo >> conf/local-content.conf
-   PROTECTED_SOURCE_URL=""
 fi
 
 if [ -n "$SSTATE_MIRRORS" ] ; then
@@ -251,22 +215,20 @@ if [ -n "$SSTATE_MIRRORS" ] ; then
       # Assume file
       SSTATE_MIRRORS="file://$SSTATE_MIRRORS"
    fi
-   echo "SSTATE_MIRRORS = 'file://.*  $SSTATE_MIRRORS/PATH \n '" >> conf/local-content.conf
-   echo >> conf/local-content.conf
-   SSTATE_MIRRORS=""
+        echo "SSTATE_MIRRORS = 'file://.*  $SSTATE_MIRRORS/PATH \n '" >> conf/local-content.conf
 fi
 
 export -n BB_NO_NETWORK
 if [ "$MAKEDROP" != "1" ] ; then
    # Temporary waiting for proper bitbake integration: https://patchwork.openembedded.org/patch/144806/
-   RELPATH=$($PYTHON -c "from os.path import relpath; print (relpath(\"$TOPDIR/layers\",\"$(pwd)\"))")
+   RELPATH=$(python -c "from os.path import relpath; print (relpath(\"$TOPDIR/layers\",\"$(pwd)\"))")
    sed -i conf/bblayers.conf -e "s,$TOPDIR/layers/,\${TOPDIR}/$RELPATH/,"
    
    if [ "$(readlink -f setup.sh)" = "$(readlink -f $TOPDIR/setup.sh)" ] ; then
       echo "Something went wrong. Exiting to prevent overwritting setup.sh"
       $EXIT 1
    fi
-   SCRIPT_RELPATH=$($PYTHON -c "from os.path import relpath; print (relpath(\"$TOPDIR\",\"`pwd`\"))")
+   SCRIPT_RELPATH=$(python -c "from os.path import relpath; print (relpath(\"$TOPDIR\",\"`pwd`\"))")
    cat > setup.sh << EOF
    if [ -n "\$BASH_SOURCE" ]; then
       THIS_SCRIPT=\$BASH_SOURCE
