@@ -1,11 +1,11 @@
-# Release repository for freedom-u540
+# Release repository for qemuriscv64
 
-Montavista Software, LLC. release of freedom-u540.
+Montavista Software, LLC. release of qemuriscv64.
 
 How to use:
 ==========
 ```
-git clone --recursive https://github.com/MontaVista-OpenSourceTechnology/opencgx-riscv
+git clone -b kirkstone --recursive https://github.com/MontaVista-OpenSourceTechnology/opencgx-riscv
 cd opencgx-riscv
 source setup.sh
 ```
@@ -40,11 +40,11 @@ directory layout:
 ================
 ```
 opencgx-riscv/
-       project - bitbake project for the freedom-u540 project build
+       project - bitbake project for the qemuriscv64 project build
        buildtools - build tools to provide minimal build requirement for poky builds
-       layers - layers for building freedom-u540 project
+       layers - layers for building qemuriscv64 project
        setup.sh - project setup script
        bin - various helper applications for setting up and maintaining the release directory
 ```
 
-Verified machines: freedom-u540
+Verified machines: qemuriscv64
