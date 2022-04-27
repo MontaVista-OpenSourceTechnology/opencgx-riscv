@@ -192,6 +192,11 @@ for config in $REPO_CONFIG; do
           echo "BB_HASHBASE_WHITELIST_append += \"$(echo $META)_TREE\"" >> conf/local-content.conf
           echo >> conf/local-content.conf
     fi
+    if [ "$VAR" = "CONFIG" ] ; then
+       option=$(echo $VAL | cut -d = -f 1)
+       setting=$(echo $VAL | cut -d = -f 2)
+       echo "$option ?= '$setting'" >> conf/local-content.conf
+    fi   
 done
 if [ -n "$SOURCE_MIRROR_URL" ] ; then
    if [ -z "$(echo $SOURCE_MIRROR_URL | grep "://")" ] ; then
