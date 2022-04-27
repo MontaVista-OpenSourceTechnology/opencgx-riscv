@@ -53,7 +53,7 @@ LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-montavista-cgl.git
 LAYER@https://github.com/MontaVista-OpenSourceTechnology/meta-riscv;branch=master \
 MACHINE@qemuriscv64 \
 DISTRO@mvista-cgx \
-CONFIG@PREFERRED_PROVIDER_virtual/kernel=linux-mainline \
+CONFIG@PREFERRED_PROVIDER_virtual/kernel=linux-yocto \
 "
 TOPDIR=$(dirname $THIS_SCRIPT)
 buildtar=""
