@@ -47,4 +47,4 @@ opencgx-riscv/
        bin - various helper applications for setting up and maintaining the release directory
 ```
 
-Verified machines: qemuriscv64
+Verified machines: qemuriscv64 icicle-kit-es

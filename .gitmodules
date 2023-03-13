@@ -46,3 +46,7 @@
 	path = layers/meta-riscv
 	url = https://github.com/MontaVista-OpenSourceTechnology/meta-riscv 
 	branch = kirkstone-cgx
+[submodule "layers/meta-polarfire-soc-yocto-bsp"]
+	path = layers/meta-polarfire-soc-yocto-bsp
+	url = https://github.com/MontaVista-OpenSourceTechnology/meta-polarfire-soc-yocto-bsp
+	branch = 2023.02
