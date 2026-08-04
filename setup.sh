@@ -98,7 +98,7 @@ if [ "$?" != "0" ] ; then
    $EXIT 1
 fi
 
-source $TOPDIR/layers/poky/oe-init-build-env $buildDir 
+source $TOPDIR/layers/openembedded-core/oe-init-build-env $buildDir 
 if [ "$?" != "0" ] ; then
    $EXIT 1
 fi
@@ -243,7 +243,7 @@ if [ "$MAKEDROP" != "1" ] ; then
    PROJECT_DIR=\$(dirname \$(readlink -f \$THIS_SCRIPT))
    cd \$PROJECT_DIR
    source $SCRIPT_RELPATH/buildtools/environment-setup-*
-   source $SCRIPT_RELPATH/layers/poky/oe-init-build-env \$PROJECT_DIR
+   source $SCRIPT_RELPATH/layers/openembedded-core/oe-init-build-env \$PROJECT_DIR
 EOF
    rm -rf tmp-glibc
 else
